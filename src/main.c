@@ -1,10 +1,15 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <stdbool.h>
 #include "entity.h"
 #include "game.h"
 
+
+
+
 int main(void)
 {
+
+
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
 
@@ -16,13 +21,33 @@ int main(void)
     bool running = true;
     Uint32 last_ticks = SDL_GetTicks();
 
+    
+    Entity grille[ENEMIES_NUMBER];
+    int a=(SCREEN_WIDTH-10*ENEMY_WIDTH)/10;
+    for (int i=0; i<5; i++){
+        for (int j=0; j<10; j++){
+            Entity enemy = {
+                .x = SCREEN_WIDTH/10*(j+0.5)-ENEMY_WIDTH/2,
+                .y = SCREEN_HEIGHT/10*i,
+                .w = ENEMY_WIDTH,
+                .h = ENEMY_HEIGHT,
+                .vx = 0,
+                .vy = 0};
+            grille[i*10+j]=enemy;
+        }
+
+
+    }
+
+
     Entity player = {
         .x = SCREEN_WIDTH / 2 - PLAYER_WIDTH / 2,
-        .y = SCREEN_HEIGHT - 60,
+        .y = SCREEN_HEIGHT -60,
         .w = PLAYER_WIDTH,
         .h = PLAYER_HEIGHT,
         .vx = 0,
         .vy = 0};
+  
 
     Entity bullet = {0};
     bool bullet_active = false;
@@ -39,7 +64,7 @@ int main(void)
         const Uint8 *keys = SDL_GetKeyboardState(NULL);
         handle_input(&running, keys, &player, &bullet, &bullet_active);
         update(&player, &bullet, &bullet_active, dt);
-        render(renderer, &player, &bullet, bullet_active);
+        render(renderer, &player, &grille, &bullet, bullet_active);
     }
 
     cleanup(window, renderer);

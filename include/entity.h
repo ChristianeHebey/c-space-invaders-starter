@@ -8,4 +8,8 @@ typedef struct
     int w, h;
 } Entity;
 
+
+
+
+
 #endif

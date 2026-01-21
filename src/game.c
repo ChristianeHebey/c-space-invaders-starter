@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "game.h"
 #include <stdio.h>
 
@@ -74,7 +74,7 @@ void update(Entity *player, Entity *bullet, bool *bullet_active, float dt)
     }
 }
 
-void render(SDL_Renderer *renderer, Entity *player, Entity *bullet, bool bullet_active)
+void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet, bool bullet_active)
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
@@ -84,6 +84,19 @@ void render(SDL_Renderer *renderer, Entity *player, Entity *bullet, bool bullet_
         player->w, player->h};
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
     SDL_RenderFillRect(renderer, &player_rect);
+
+    for (int i=0; i<5; i++){
+        for (int j=0; j<10; j++){
+            Entity *enemy = &grille[i*10 + j];
+            SDL_Rect enemy_rect = {
+            (int)enemy->x, (int)enemy->y,
+            enemy->w, enemy->h};
+        SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+        SDL_RenderFillRect(renderer, &enemy_rect);
+        }
+
+
+    } 
 
     if (bullet_active)
     {
@@ -105,3 +118,4 @@ void cleanup(SDL_Window *window, SDL_Renderer *renderer)
         SDL_DestroyWindow(window);
     SDL_Quit();
 }
+
