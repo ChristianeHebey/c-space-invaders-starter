@@ -57,8 +57,18 @@ void handle_input(bool *running, const Uint8 *keys, Entity *player, Entity *bull
     }
 }
 
-void update(Entity *player, Entity *bullet, bool *bullet_active, float dt)
+void update(Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt)
 {
+
+    for (int i=0; i<5; i++){
+        for (int j=0; j<10; j++){
+            Entity enemy=grille[i*10+j];
+            enemy.y+=enemy.vy*dt;
+            grille[i*10+j]=enemy;
+        }
+    }
+    
+
     player->x += player->vx * dt;
 
     if (player->x < 0)

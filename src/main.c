@@ -32,7 +32,7 @@ int main(void)
                 .w = ENEMY_WIDTH,
                 .h = ENEMY_HEIGHT,
                 .vx = 0,
-                .vy = 0};
+                .vy = 10};
             grille[i*10+j]=enemy;
         }
 
@@ -63,7 +63,7 @@ int main(void)
         SDL_PumpEvents();
         const Uint8 *keys = SDL_GetKeyboardState(NULL);
         handle_input(&running, keys, &player, &bullet, &bullet_active);
-        update(&player, &bullet, &bullet_active, dt);
+        update(&player, &bullet,&grille, &bullet_active, dt);
         render(renderer, &player, &grille, &bullet, bullet_active);
     }
 
