@@ -18,7 +18,7 @@
 
 #define ENEMY_WIDTH 20
 #define ENEMY_HEIGHT 20
-#define ENEMY_SPEED 400.0f
+#define ENEMY_SPEED 10.0f
 #define ENEMIES_NUMBER 50
 #define ENEMIES_LINE 10
 #define ENEMIES_COLS 5
@@ -30,11 +30,12 @@ void handle_input(bool *running, const Uint8 *keys, Entity *player, Entity *bull
 void update(Entity *player, Entity *bullet,Entity *grille, bool *bullet_active, float dt);
 void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet, bool bullet_active);
 void cleanup(SDL_Window *window, SDL_Renderer *renderer);
-
-
-
-
-
-
+void death(SDL_Renderer *renderer, Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt);
+void Enemiesdraw(SDL_Renderer *renderer, Entity *grille);
+void win(SDL_Renderer *renderer, Entity *grille, SDL_Window **window);
+void loosenv1(bool dead, SDL_Renderer *renderer, SDL_Window **window, Entity *player, Entity *grille, Entity *bullet, bool bullet_active);
+Entity *tableau_des_vivants( Entity *grille);
+int compteur_vivants(Entity *grille);
+void tirs_enemis(int i, float dt, SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet);
 
 #endif

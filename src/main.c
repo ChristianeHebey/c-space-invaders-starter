@@ -9,7 +9,8 @@
 int main(void)
 {
 
-
+    bool dead=false;
+    int i=0;
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
 
@@ -21,7 +22,8 @@ int main(void)
     bool running = true;
     Uint32 last_ticks = SDL_GetTicks();
 
-    
+    int vies[5]={1};
+
     Entity grille[ENEMIES_NUMBER];
     int a=(SCREEN_WIDTH-10*ENEMY_WIDTH)/10;
     for (int i=0; i<5; i++){
@@ -32,7 +34,8 @@ int main(void)
                 .w = ENEMY_WIDTH,
                 .h = ENEMY_HEIGHT,
                 .vx = 0,
-                .vy = 10};
+                .alive=true,
+                .vy = 7};
             grille[i*10+j]=enemy;
         }
 
@@ -46,6 +49,7 @@ int main(void)
         .w = PLAYER_WIDTH,
         .h = PLAYER_HEIGHT,
         .vx = 0,
+        .alive=true,
         .vy = 0};
   
 
@@ -64,7 +68,11 @@ int main(void)
         const Uint8 *keys = SDL_GetKeyboardState(NULL);
         handle_input(&running, keys, &player, &bullet, &bullet_active);
         update(&player, &bullet,&grille, &bullet_active, dt);
+        death(renderer, &player, &bullet, grille, &bullet_active, dt);
         render(renderer, &player, &grille, &bullet, bullet_active);
+        //tirs_enemis(i, dt,renderer, &player, &grille, &bullet);
+        win(renderer, &grille, &window);
+        loosenv1(dead, renderer, &window, &player, &grille, &bullet, &bullet_active);
     }
 
     cleanup(window, renderer);
