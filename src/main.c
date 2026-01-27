@@ -2,15 +2,13 @@
 #include <stdbool.h>
 #include "entity.h"
 #include "game.h"
-
+#include <time.h>
 
 
 
 int main(void)
 {
-
     bool dead=false;
-    int i=0;
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
 
@@ -50,8 +48,11 @@ int main(void)
         .h = PLAYER_HEIGHT,
         .vx = 0,
         .alive=true,
-        .vy = 0};
-  
+        .vy = BULLET_SPEED};
+
+    Entity bullet_enemy;       
+    bool bullet_enemy_active = false; 
+    float enemy_shoot_timer = 0.0f;
 
     Entity bullet = {0};
     bool bullet_active = false;

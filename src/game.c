@@ -1,7 +1,7 @@
 #include <SDL.h>
 #include "game.h"
 #include <stdio.h>
-
+#include <time.h>
 
 
 bool init(SDL_Window **window, SDL_Renderer **renderer)
@@ -86,6 +86,8 @@ void update(Entity *player, Entity *bullet, Entity *grille, bool *bullet_active,
             *bullet_active = false;
     }
 }
+
+
 
 //Fonction qui dit si le joueur est mort selon les critères du niveau 1
 void death(SDL_Renderer *renderer, Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt){
@@ -229,25 +231,5 @@ Entity *tableau_des_vivants(Entity *grille) {
     return vivants;
 }
 
-void tirs_enemis(int i, float dt, SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet){
-    Entity *vivants= tableau_des_vivants(grille);
-    Entity bullet_enemy = {
-        .x = vivants[i].x,
-        .y = vivants[i].y,
-        .w = BULLET_WIDTH,
-        .h = BULLET_HEIGHT,
-        .vx = 0,
-        .alive=true,
-        .vy = -BULLET_SPEED};
-    bullet->y += bullet->vy * dt;
-    if (bullet_enemy.x >= player->x && bullet_enemy.x <= player->x + player->w && bullet_enemy.y >= player->y && bullet_enemy.y <= player->y + player->h){
-        printf("MORT");
-        i+=1%5;
-    }
 
-    SDL_Rect bullet_enemy_rect = {
-            (int)bullet->x, (int)bullet->y,
-            bullet->w, bullet->h};
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderFillRect(renderer, &bullet_enemy_rect);
-}
+

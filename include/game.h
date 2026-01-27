@@ -36,6 +36,7 @@ void win(SDL_Renderer *renderer, Entity *grille, SDL_Window **window);
 void loosenv1(bool dead, SDL_Renderer *renderer, SDL_Window **window, Entity *player, Entity *grille, Entity *bullet, bool bullet_active);
 Entity *tableau_des_vivants( Entity *grille);
 int compteur_vivants(Entity *grille);
-void tirs_enemis(int i, float dt, SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet);
+
+
 
 #endif
