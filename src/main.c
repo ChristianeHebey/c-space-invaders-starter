@@ -7,8 +7,11 @@
 
 
 int main(void)
-{
-    bool dead=false;
+{   
+    int score = 0;
+    int life = 3;
+
+    srand(time(NULL));
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
 
@@ -57,23 +60,31 @@ int main(void)
     Entity bullet = {0};
     bool bullet_active = false;
 
+    Entity enemy_bullets[NB_ENEMY_BULLETS];
+    bool enemy_bullets_active[NB_ENEMY_BULLETS] = {false};
+
     while (running)
-    {
+    {   
         Uint32 ticks = SDL_GetTicks();
         float dt = (ticks - last_ticks) / 1000.0f;
-        if (dt > 0.05f)
-            dt = 0.05f;
+        if (dt > 0.05f) dt = 0.05f;
         last_ticks = ticks;
 
         SDL_PumpEvents();
         const Uint8 *keys = SDL_GetKeyboardState(NULL);
         handle_input(&running, keys, &player, &bullet, &bullet_active);
-        update(&player, &bullet,&grille, &bullet_active, dt);
-        death(renderer, &player, &bullet, grille, &bullet_active, dt);
-        render(renderer, &player, &grille, &bullet, bullet_active);
-        //tirs_enemis(i, dt,renderer, &player, &grille, &bullet);
-        win(renderer, &grille, &window);
-        loosenv1(dead, renderer, &window, &player, &grille, &bullet, &bullet_active);
+        
+        update(&player, &bullet, grille, &bullet_active, dt);
+        enemies_shoot(grille, dt, enemy_bullets, enemy_bullets_active);
+        update_enemy_bullets(dt, enemy_bullets, enemy_bullets_active);
+        
+        check_if_player_hit_enemy(renderer, &player, &bullet, grille, &bullet_active, dt, &score);
+        check_if_enemy_hit_player(&player, &life, &running, enemy_bullets, enemy_bullets_active);
+        
+        render(renderer, &player, grille, &bullet, bullet_active, enemy_bullets, enemy_bullets_active,score,life);
+
+        win(renderer, grille, &window);
+        loosenv1(&running, renderer, &window, &player, grille, &bullet, &bullet_active);
     }
 
     cleanup(window, renderer);

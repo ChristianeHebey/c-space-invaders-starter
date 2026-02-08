@@ -4,6 +4,11 @@
 #include <time.h>
 
 
+//BIEN REVERIFIER LE TRUC DE QUAND UNE BALLE TOUCHE CAR MES ENCADRÉS SONT PAS EXACTS
+//FAIRE UNE FONCTION GAME OVER
+//METTRE LES FONCTIONS DANS UN ORDRE QUI FAIT SENS PAR PIT
+//IL FAUT QUE JE DEMANDE COMMEND AFFICHEER DU TEXTE EN DSL PARCE QUE HUD VA PAS
+
 bool init(SDL_Window **window, SDL_Renderer **renderer)
 {
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -89,8 +94,8 @@ void update(Entity *player, Entity *bullet, Entity *grille, bool *bullet_active,
 
 
 
-//Fonction qui dit si le joueur est mort selon les critères du niveau 1
-void death(SDL_Renderer *renderer, Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt){
+
+void check_if_player_hit_enemy(SDL_Renderer *renderer, Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt, int *score){
     for (int i=0; i<5; i++){
         for (int j=0; j<10; j++){
             Entity *enemy=&grille[i*10+j];
@@ -104,6 +109,8 @@ void death(SDL_Renderer *renderer, Entity *player, Entity *bullet, Entity *grill
                     grille[i*10 + j].vy = 0;
                     grille[i*10 + j].alive = false;
                     *bullet_active = false;
+                    (*score)+=1;
+
                 }
             }
         }
@@ -142,13 +149,13 @@ void win(SDL_Renderer *renderer, Entity *grille, SDL_Window **window){
     return ;
 }
 
-//Fonction qui dit si le joueur est mort selon les critères du niveau 1
-void loosenv1(bool dead, SDL_Renderer *renderer, SDL_Window **window, Entity *player, Entity *grille, Entity *bullet, bool bullet_active){
+//verif si besoin encore
+void loosenv1(bool *running, SDL_Renderer *renderer, SDL_Window **window, Entity *player, Entity *grille, Entity *bullet, bool bullet_active){
     int a=0;
     Entity EnemY;
     for (int i=49; i>=0; i--){
         Entity enemy= grille[i];
-        if (enemy.alive=true){
+        if (enemy.alive==true){
             a=i;
             EnemY=enemy;
             break;
@@ -157,41 +164,64 @@ void loosenv1(bool dead, SDL_Renderer *renderer, SDL_Window **window, Entity *pl
     }
     if (-PLAYER_HEIGHT<=EnemY.y-player->y && EnemY.y-player->y<=PLAYER_HEIGHT){
         printf("YOU LOOSE BIG LOOSER !");
-        dead=true;
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        exit(0);
-
+        *running=false;
     }
 
 }
 
-void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet, bool bullet_active)
+void draw_lives(SDL_Renderer *renderer, int score, int lives) {
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
+    for (int i = 0; i < score; i++) {
+        SDL_Rect scoreRect = { 10 + (i * 12), 10, 10, 10 };
+        SDL_RenderFillRect(renderer, &scoreRect);
+    }
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
+    for (int i = 0; i < lives; i++) {
+        SDL_Rect lifeRect = { (SCREEN_WIDTH - 30) - (i * 25), 10, 20, 10 };
+        SDL_RenderFillRect(renderer, &lifeRect);
+    }
+}
+
+void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet, bool bullet_active, Entity *enemy_bullets, bool *enemy_bullets_active, int score, int lives)
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-
+   
     SDL_Rect player_rect = {
         (int)player->x, (int)player->y,
         player->w, player->h};
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
     SDL_RenderFillRect(renderer, &player_rect);
 
-    if (bullet_active)
-    {
+    if (bullet_active) {
         SDL_Rect bullet_rect = {
             (int)bullet->x, (int)bullet->y,
             bullet->w, bullet->h};
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderFillRect(renderer, &bullet_rect);
     }
-    
+
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     Enemiesdraw(renderer, grille);
 
+    for (int i = 0; i < NB_ENEMY_BULLETS; i++) {
+        if (enemy_bullets_active[i]) {
+            SDL_Rect b_rect = {
+                (int)enemy_bullets[i].x, (int)enemy_bullets[i].y,
+                enemy_bullets[i].w, enemy_bullets[i].h};
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); 
+            SDL_RenderFillRect(renderer, &b_rect);
+        }
+    }
+
+    draw_lives(renderer, score, lives);
+
     SDL_RenderPresent(renderer);
 }
+
+
 
 
 void cleanup(SDL_Window *window, SDL_Renderer *renderer)
@@ -203,10 +233,11 @@ void cleanup(SDL_Window *window, SDL_Renderer *renderer)
     SDL_Quit();
 }
 
+//sert à r ici
 int compteur_vivants(Entity *grille){
     int a=0;
     for (int i =0; i<50; i++){
-        if (grille[i].alive=true){
+        if (grille[i].alive==true){
             a+=1;
         }
 
@@ -214,6 +245,7 @@ int compteur_vivants(Entity *grille){
     return a;
 }
 
+//sert à r ici
 Entity *tableau_des_vivants(Entity *grille) {
     int a = compteur_vivants(grille);
     int b = 0;
@@ -231,5 +263,67 @@ Entity *tableau_des_vivants(Entity *grille) {
     return vivants;
 }
 
+void enemies_shoot(Entity *grille, float dt,Entity *enemy_bullets,bool enemy_bullets_active[]) {
+    static float timer = 0.0f; 
+    timer += dt;
+    if (timer >= 1.5f) {
+        timer = 0.0f;
+        int essais = 0;
+        int indi = -1;
+        while(essais < 10) {
+            int r = rand() % 50;
+            if (grille[r].alive) {
+                indi = r;
+                break;
+            }
+            essais+=1;
+        }
+        if (indi != -1) {
+            for (int i = 0; i < NB_ENEMY_BULLETS; i++) {
+                if (enemy_bullets_active[i]==false) {
+                    enemy_bullets_active[i] = true;
+                    enemy_bullets[i].x = grille[indi].x + (grille[indi].w / 2) - 2;
+                    enemy_bullets[i].y = grille[indi].y + grille[indi].h;
+                    enemy_bullets[i].w = ENEMY_BULLET_WIDTH;
+                    enemy_bullets[i].h = ENEMY_BULLET_HEIGHT;
+                    enemy_bullets[i].vy = ENEMY_BULLET_SPEED; 
+                    break; 
+                }
+            }
+        }
+    }
+}
+
+
+void update_enemy_bullets(float dt,Entity *enemy_bullets,bool enemy_bullets_active[]) {
+    for (int i = 0; i < NB_ENEMY_BULLETS; i++) {
+        if (enemy_bullets_active[i]==true) {
+            enemy_bullets[i].y += enemy_bullets[i].vy * dt;
+            if (enemy_bullets[i].y > SCREEN_HEIGHT || enemy_bullets[i].y < -ENEMY_BULLET_HEIGHT) {
+                enemy_bullets_active[i] = false;
+            }
+        }
+    }
+}
+
+
+void check_if_enemy_hit_player(Entity *player, int *life, bool *running,Entity *enemy_bullets,bool enemy_bullets_active[] ) {
+    for (int i = 0; i < NB_ENEMY_BULLETS; i++) {
+        if (enemy_bullets_active[i]) {
+            if (enemy_bullets[i].x < player->x + player->w &&
+                enemy_bullets[i].x + enemy_bullets[i].w > player->x &&
+                enemy_bullets[i].y < player->y + player->h &&
+                enemy_bullets[i].y + enemy_bullets[i].h > player->y) {
+                
+                enemy_bullets_active[i]=false;
+                (*life)-=1;
+                if (*life <=0){
+                    printf("PARTIE TERMINÉE.");
+                    *running = false; 
+                }
+            }
+        }
+    }
+}
 
 
