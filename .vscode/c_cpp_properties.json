@@ -2,15 +2,11 @@
     "configurations": [
         {
             "name": "Mac",
-            "includePath": 
+            "includePath": [
                 "${workspaceFolder}/**",
-               "/opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2                ````cpp
-               // filepath: main.cpp
-               // ...existing code...
-               std::vector<int> vivants = compute_vivants(grille);
-               enemy_fire(&bullet_enemy, &bullet_enemy_active, vivants.data(), vivants.size());
-               // pas de free nécessaire (RAII)"
-,
+                "/opt/homebrew/include",
+                "/opt/homebrew/include/SDL2"
+            ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c17",

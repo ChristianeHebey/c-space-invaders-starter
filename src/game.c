@@ -2,6 +2,7 @@
 #include "game.h"
 #include <stdio.h>
 #include <time.h>
+#include <SDL_ttf.h>
 
 
 //BIEN REVERIFIER LE TRUC DE QUAND UNE BALLE TOUCHE CAR MES ENCADRÉS SONT PAS EXACTS
@@ -65,12 +66,13 @@ void handle_input(bool *running, const Uint8 *keys, Entity *player, Entity *bull
 }
 
 
-void update(Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt)
+void update(Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt, float Vy)
 {
 
     for (int i=0; i<5; i++){
         for (int j=0; j<10; j++){
             Entity enemy=grille[i*10+j];
+            enemy.vy=Vy;
             enemy.y+=enemy.vy*dt;
             grille[i*10+j]=enemy;
         }
@@ -117,6 +119,7 @@ void check_if_player_hit_enemy(SDL_Renderer *renderer, Entity *player, Entity *b
     }
 }
 
+
 void Enemiesdraw(SDL_Renderer *renderer, Entity *grille) {
     for (int i = 0; i < 50; i++) {
 
@@ -129,138 +132,6 @@ void Enemiesdraw(SDL_Renderer *renderer, Entity *grille) {
 
         SDL_RenderFillRect(renderer, &enemies_rect);
     }
-}
-
-void win(SDL_Renderer *renderer, Entity *grille, SDL_Window **window){
-    int k=0;
-    for (int i=0; i<50; i++) {
-        if (grille[i].alive==false){
-            k+=1;
-        }
-    }
-    if (k==50){
-        printf("BRAVO TU AS GAGNÉ");
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        exit(0);
-
-    }
-    return ;
-}
-
-//verif si besoin encore
-void loosenv1(bool *running, SDL_Renderer *renderer, SDL_Window **window, Entity *player, Entity *grille, Entity *bullet, bool bullet_active){
-    int a=0;
-    Entity EnemY;
-    for (int i=49; i>=0; i--){
-        Entity enemy= grille[i];
-        if (enemy.alive==true){
-            a=i;
-            EnemY=enemy;
-            break;
-        }
-
-    }
-    if (-PLAYER_HEIGHT<=EnemY.y-player->y && EnemY.y-player->y<=PLAYER_HEIGHT){
-        printf("YOU LOOSE BIG LOOSER !");
-        *running=false;
-    }
-
-}
-
-void draw_lives(SDL_Renderer *renderer, int score, int lives) {
-
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
-    for (int i = 0; i < score; i++) {
-        SDL_Rect scoreRect = { 10 + (i * 12), 10, 10, 10 };
-        SDL_RenderFillRect(renderer, &scoreRect);
-    }
-
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
-    for (int i = 0; i < lives; i++) {
-        SDL_Rect lifeRect = { (SCREEN_WIDTH - 30) - (i * 25), 10, 20, 10 };
-        SDL_RenderFillRect(renderer, &lifeRect);
-    }
-}
-
-void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet, bool bullet_active, Entity *enemy_bullets, bool *enemy_bullets_active, int score, int lives)
-{
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-   
-    SDL_Rect player_rect = {
-        (int)player->x, (int)player->y,
-        player->w, player->h};
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-    SDL_RenderFillRect(renderer, &player_rect);
-
-    if (bullet_active) {
-        SDL_Rect bullet_rect = {
-            (int)bullet->x, (int)bullet->y,
-            bullet->w, bullet->h};
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderFillRect(renderer, &bullet_rect);
-    }
-
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    Enemiesdraw(renderer, grille);
-
-    for (int i = 0; i < NB_ENEMY_BULLETS; i++) {
-        if (enemy_bullets_active[i]) {
-            SDL_Rect b_rect = {
-                (int)enemy_bullets[i].x, (int)enemy_bullets[i].y,
-                enemy_bullets[i].w, enemy_bullets[i].h};
-            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); 
-            SDL_RenderFillRect(renderer, &b_rect);
-        }
-    }
-
-    draw_lives(renderer, score, lives);
-
-    SDL_RenderPresent(renderer);
-}
-
-
-
-
-void cleanup(SDL_Window *window, SDL_Renderer *renderer)
-{
-    if (renderer)
-        SDL_DestroyRenderer(renderer);
-    if (window)
-        SDL_DestroyWindow(window);
-    SDL_Quit();
-}
-
-//sert à r ici
-int compteur_vivants(Entity *grille){
-    int a=0;
-    for (int i =0; i<50; i++){
-        if (grille[i].alive==true){
-            a+=1;
-        }
-
-    }
-    return a;
-}
-
-//sert à r ici
-Entity *tableau_des_vivants(Entity *grille) {
-    int a = compteur_vivants(grille);
-    int b = 0;
-
-    Entity *vivants = malloc(a * sizeof(Entity));
-    if (vivants == NULL) return NULL;
-
-    for (int i = 0; i < 50; i++) {
-        if (grille[i].alive) {
-            vivants[b] = grille[i];
-            b++;
-        }
-    }
-
-    return vivants;
 }
 
 void enemies_shoot(Entity *grille, float dt,Entity *enemy_bullets,bool enemy_bullets_active[]) {
@@ -295,6 +166,7 @@ void enemies_shoot(Entity *grille, float dt,Entity *enemy_bullets,bool enemy_bul
 }
 
 
+
 void update_enemy_bullets(float dt,Entity *enemy_bullets,bool enemy_bullets_active[]) {
     for (int i = 0; i < NB_ENEMY_BULLETS; i++) {
         if (enemy_bullets_active[i]==true) {
@@ -326,4 +198,129 @@ void check_if_enemy_hit_player(Entity *player, int *life, bool *running,Entity *
     }
 }
 
+void draw_lives(SDL_Renderer *renderer, int score, int lives) {
 
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
+    for (int i = 0; i < score; i++) {
+        SDL_Rect scoreRect = { 10 + (i * 12), 10, 10, 10 };
+        SDL_RenderFillRect(renderer, &scoreRect);
+    }
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
+    for (int i = 0; i < lives; i++) {
+        SDL_Rect lifeRect = { (SCREEN_WIDTH - 30) - (i * 25), 10, 20, 10 };
+        SDL_RenderFillRect(renderer, &lifeRect);
+    }
+}
+
+
+void update_heart(Entity *heart, Entity *player, int *life, float dt) {
+    if (heart->alive==true) {
+        heart->y += heart->vy * dt;
+        if (heart->x < player->x + player->w &&
+            heart->x + heart->w > player->x &&
+            heart->y < player->y + player->h &&
+            heart->y + heart->h > player->y) {
+            (*life)++; //mettre un nombre de vie max?
+            heart->alive = false;
+        }
+        if (heart->y > SCREEN_HEIGHT) {
+            heart->alive = false;
+    }
+}
+}
+
+
+
+void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet, bool bullet_active, Entity *enemy_bullets, bool *enemy_bullets_active, int score, int lives, Entity *heart)
+{
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+   
+    SDL_Rect player_rect = {
+        (int)player->x, (int)player->y,
+        player->w, player->h};
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_RenderFillRect(renderer, &player_rect);
+
+    if (bullet_active) {
+        SDL_Rect bullet_rect = {
+            (int)bullet->x, (int)bullet->y,
+            bullet->w, bullet->h};
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderFillRect(renderer, &bullet_rect);
+    }
+
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    Enemiesdraw(renderer, grille);
+
+    for (int i = 0; i < NB_ENEMY_BULLETS; i++) {
+        if (enemy_bullets_active[i]) {
+            SDL_Rect b_rect = {
+                (int)enemy_bullets[i].x, (int)enemy_bullets[i].y,
+                enemy_bullets[i].w, enemy_bullets[i].h};
+            SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); 
+            SDL_RenderFillRect(renderer, &b_rect);
+        }
+    }
+
+    if (heart->alive==true) {
+        SDL_Rect heart_rect = {(int)heart->x, (int)heart->y, heart->w, heart->h};
+        SDL_SetRenderDrawColor(renderer, 255, 105, 180, 255); 
+        SDL_RenderFillRect(renderer, &heart_rect);
+    }
+
+    draw_lives(renderer, score, lives);
+
+    SDL_RenderPresent(renderer);
+}
+
+
+
+
+void cleanup(SDL_Window *window, SDL_Renderer *renderer)
+{
+    if (renderer)
+        SDL_DestroyRenderer(renderer);
+    if (window)
+        SDL_DestroyWindow(window);
+    SDL_Quit();
+}
+
+
+void win(SDL_Renderer *renderer, Entity *grille, SDL_Window **window){
+    int k=0;
+    for (int i=0; i<50; i++) {
+        if (grille[i].alive==false){
+            k+=1;
+        }
+    }
+    if (k==50){
+        printf("BRAVO TU AS GAGNÉ");
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        exit(0);
+
+    }
+    return ;
+}
+
+void loose(bool *running, SDL_Renderer *renderer, SDL_Window **window, Entity *player, Entity *grille, Entity *bullet, bool bullet_active){
+    int a=0;
+    Entity EnemY;
+    for (int i=49; i>=0; i--){
+        Entity enemy= grille[i];
+        if (enemy.alive==true){
+            a=i;
+            EnemY=enemy;
+            break;
+        }
+
+    }
+    if (-PLAYER_HEIGHT<=EnemY.y-player->y && EnemY.y-player->y<=PLAYER_HEIGHT){
+        printf("YOU LOOSE BIG LOOSER !");
+        *running=false;
+    }
+
+}

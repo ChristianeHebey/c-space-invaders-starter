@@ -1,8 +1,7 @@
 # Compiler & flags
 CC = gcc
 CFLAGS = -Wall -Wextra -Iinclude `sdl2-config --cflags`
-LDFLAGS = `sdl2-config --libs`
-
+LDFLAGS = `sdl2-config --libs` -lSDL2_ttf
 # Dossiers
 SRC_DIR = src
 BUILD_DIR = build
