@@ -6,9 +6,7 @@
 
 
 //BIEN REVERIFIER LE TRUC DE QUAND UNE BALLE TOUCHE CAR MES ENCADRÉS SONT PAS EXACTS
-//FAIRE UNE FONCTION GAME OVER
-//METTRE LES FONCTIONS DANS UN ORDRE QUI FAIT SENS PAR PIT
-//IL FAUT QUE JE DEMANDE COMMEND AFFICHEER DU TEXTE EN DSL PARCE QUE HUD VA PAS
+
 
 bool init(SDL_Window **window, SDL_Renderer **renderer)
 {
@@ -190,28 +188,13 @@ void check_if_enemy_hit_player(Entity *player, int *life, bool *running,Entity *
                 enemy_bullets_active[i]=false;
                 (*life)-=1;
                 if (*life <=0){
-                    printf("PARTIE TERMINÉE.");
-                    *running = false; 
+                    player->alive=false;
                 }
             }
         }
     }
 }
 
-void draw_lives(SDL_Renderer *renderer, int score, int lives) {
-
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
-    for (int i = 0; i < score; i++) {
-        SDL_Rect scoreRect = { 10 + (i * 12), 10, 10, 10 };
-        SDL_RenderFillRect(renderer, &scoreRect);
-    }
-
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); 
-    for (int i = 0; i < lives; i++) {
-        SDL_Rect lifeRect = { (SCREEN_WIDTH - 30) - (i * 25), 10, 20, 10 };
-        SDL_RenderFillRect(renderer, &lifeRect);
-    }
-}
 
 
 void update_heart(Entity *heart, Entity *player, int *life, float dt) {
@@ -221,7 +204,7 @@ void update_heart(Entity *heart, Entity *player, int *life, float dt) {
             heart->x + heart->w > player->x &&
             heart->y < player->y + player->h &&
             heart->y + heart->h > player->y) {
-            (*life)++; //mettre un nombre de vie max?
+            (*life)++; 
             heart->alive = false;
         }
         if (heart->y > SCREEN_HEIGHT) {
@@ -235,7 +218,6 @@ void update_heart(Entity *heart, Entity *player, int *life, float dt) {
 void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet, bool bullet_active, Entity *enemy_bullets, bool *enemy_bullets_active, int score, int lives, Entity *heart)
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
    
     SDL_Rect player_rect = {
         (int)player->x, (int)player->y,
@@ -270,9 +252,6 @@ void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bull
         SDL_RenderFillRect(renderer, &heart_rect);
     }
 
-    draw_lives(renderer, score, lives);
-
-    SDL_RenderPresent(renderer);
 }
 
 
@@ -288,39 +267,85 @@ void cleanup(SDL_Window *window, SDL_Renderer *renderer)
 }
 
 
-void win(SDL_Renderer *renderer, Entity *grille, SDL_Window **window){
-    int k=0;
-    for (int i=0; i<50; i++) {
-        if (grille[i].alive==false){
-            k+=1;
+
+void win(SDL_Renderer *renderer, Entity *grille, SDL_Window **window, TTF_Font *font, bool *running) {
+    int k = 0;
+    for (int i = 0; i < 50; i++) {
+        if (grille[i].alive == false) {
+            k += 1;
         }
     }
-    if (k==50){
-        printf("BRAVO TU AS GAGNÉ");
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        exit(0);
 
+    if (k == 50) { 
+        SDL_Color vert = {0, 255, 0, 255}; 
+        
+        if (font != NULL) {
+            SDL_Surface *surf = TTF_RenderText_Solid(font, "YOU WIN MY CHAMPION !", vert);
+            if (surf) {
+                SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surf);
+                if (tex) {
+                    SDL_Rect rect = { (SCREEN_WIDTH - surf->w) / 2, (SCREEN_HEIGHT - surf->h) / 2, surf->w, surf->h };
+                    SDL_RenderCopy(renderer, tex, NULL, &rect);
+                    SDL_DestroyTexture(tex);
+                }
+                SDL_FreeSurface(surf);
+            }
+        }
+        SDL_RenderPresent(renderer);
+        SDL_Delay(1000);
+        *running = false;
     }
-    return ;
 }
 
-void loose(bool *running, SDL_Renderer *renderer, SDL_Window **window, Entity *player, Entity *grille, Entity *bullet, bool bullet_active){
-    int a=0;
-    Entity EnemY;
-    for (int i=49; i>=0; i--){
-        Entity enemy= grille[i];
-        if (enemy.alive==true){
-            a=i;
-            EnemY=enemy;
-            break;
+
+void loose2(bool *running, SDL_Renderer *renderer, SDL_Window **window, Entity *player, Entity *grille, Entity *bullet, bool *bullet_active, TTF_Font *font) {
+    
+    bool ennemi_sort = false;
+    for (int i = 0; i < 50; i++) {
+        if (grille[i].alive ==true && (grille[i].y + grille[i].h) >= player->y) {
+            ennemi_sort = true;
+            break; 
         }
-
-    }
-    if (-PLAYER_HEIGHT<=EnemY.y-player->y && EnemY.y-player->y<=PLAYER_HEIGHT){
-        printf("YOU LOOSE BIG LOOSER !");
-        *running=false;
     }
 
+    if (player->alive==false || ennemi_sort) {
+        player->alive = false; 
+        
+        SDL_Color red = {255, 0, 0, 255};
+        
+        if (font != NULL) {
+            SDL_Surface *surf = TTF_RenderText_Solid(font, "YOU LOOSE BIG LOOSER !", red);
+            if (surf) {
+                SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surf);
+                SDL_Rect rect = { (SCREEN_WIDTH - surf->w) / 2, (SCREEN_HEIGHT - surf->h) / 2, surf->w, surf->h };
+                
+                SDL_RenderCopy(renderer, tex, NULL, &rect);
+                
+                SDL_RenderPresent(renderer); 
+                SDL_Delay(1000);             
+                *running = false;            
+                
+                SDL_DestroyTexture(tex);
+                SDL_FreeSurface(surf);
+            }
+        }
+    }
+}
+
+void draw_hud(SDL_Renderer *renderer, TTF_Font *font, int score, int lives) {
+
+    SDL_Color white = {255, 255, 255, 255};
+    char buffer[50];
+    sprintf(buffer, "SCORE: %d | VIES: %d", score, lives);
+
+    SDL_Surface *surf = TTF_RenderText_Solid(font, buffer, white);
+    if (surf) {
+        SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surf);
+        SDL_Rect rect = { 20, 20, surf->w, surf->h }; 
+        
+        SDL_RenderCopy(renderer, tex, NULL, &rect);
+
+        SDL_FreeSurface(surf);
+        SDL_DestroyTexture(tex);
+    }
 }

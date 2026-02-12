@@ -20,28 +20,30 @@ int main(void)
         return 1;
     }
 
+    if (TTF_Init() == -1) {
+        printf("Erreur TTF: %s\n", TTF_GetError());
+        return 1;
+    }
+    TTF_Font *font = TTF_OpenFont("Arial.ttf", 15);; 
+    
+
     bool running = true;
     Uint32 last_ticks = SDL_GetTicks();
 
-    int vies[5]={1};
-
     Entity grille[ENEMIES_NUMBER];
 
-    int a=(SCREEN_WIDTH-10*ENEMY_WIDTH)/10;
-    for (int i=0; i<5; i++){
-        for (int j=0; j<10; j++){
+    for (int i = 0; i < 5; i++) { 
+        for (int j = 0; j < 10; j++) { 
             Entity enemy = {
-                .x = SCREEN_WIDTH/10*(j+0.5)-ENEMY_WIDTH/2,
-                .y = SCREEN_HEIGHT/10*i,
-                .w = ENEMY_WIDTH,
-                .h = ENEMY_HEIGHT,
-                .vx = 0,
-                .alive=true,
-                .vy = 7};
-            grille[i*10+j]=enemy;
+                .x = 180 + (j * 45),
+                .y = 80 + (i * 35),
+                .w = 30,  
+                .h = 20,  
+                .alive = true,
+                .vy = 1 
+            };
+            grille[i * 10 + j] = enemy;
         }
-
-
     }
 
 
@@ -106,11 +108,26 @@ int main(void)
         check_if_player_hit_enemy(renderer, &player, &bullet, grille, &bullet_active, dt, &score);
         check_if_enemy_hit_player(&player, &life, &running, enemy_bullets, enemy_bullets_active);
         
-        render(renderer, &player, grille, &bullet, bullet_active, enemy_bullets, enemy_bullets_active,score,life, &heart);
+        win(renderer, grille, &window,font, &running);
+        loose2(&running, renderer, &window, &player, grille, &bullet, &bullet_active,font);
 
-        win(renderer, grille, &window);
-        loose(&running, renderer, &window, &player, grille, &bullet, &bullet_active);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        render(renderer, &player, grille, &bullet, bullet_active, enemy_bullets, enemy_bullets_active, score, life, &heart);
+
+        draw_hud(renderer, font, score, life);
+
+        if (player.alive==false) {
+            player.alive = false; 
+            loose2(&running, renderer, &window, &player, grille, &bullet, &bullet_active, font);
+            SDL_RenderPresent(renderer);
+        }
+
+    SDL_RenderPresent(renderer);
     }
+    TTF_CloseFont(font);
+    TTF_Quit();
     cleanup(window, renderer);
     return 0;
 }
