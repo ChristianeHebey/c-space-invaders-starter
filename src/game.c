@@ -4,12 +4,9 @@
 #include <time.h>
 #include <SDL_ttf.h>
 
-
-//BIEN REVERIFIER LE TRUC DE QUAND UNE BALLE TOUCHE CAR MES ENCADRÉS SONT PAS EXACTS
-
-
 bool init(SDL_Window **window, SDL_Renderer **renderer)
 {
+
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
         SDL_Log("Erreur SDL_Init: %s", SDL_GetError());
@@ -64,99 +61,130 @@ void handle_input(bool *running, const Uint8 *keys, Entity *player, Entity *bull
 }
 
 
-void update(Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt, float Vy)
+
+void update(Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt, float difficulty_factor)
 {
+    float vit_init = 5.0f; 
 
-    for (int i=0; i<5; i++){
-        for (int j=0; j<10; j++){
-            Entity enemy=grille[i*10+j];
-            enemy.vy=Vy;
-            enemy.y+=enemy.vy*dt;
-            grille[i*10+j]=enemy;
+    for (int i = 0; i < 50; i++) {
+    if (grille[i].alive) {
+        float vit;
+
+        if (grille[i].type == FAST) {
+            vit = 10.0f; 
+        } else {
+            vit = vit_init; 
         }
+        grille[i].y += (vit * difficulty_factor) * dt;
     }
-    
-
+}
     player->x += player->vx * dt;
 
-    if (player->x < 0)
-        player->x = 0;
-    if (player->x + player->w > SCREEN_WIDTH)
-        player->x = SCREEN_WIDTH - player->w;
+    if (player->x < 0) player->x = 0;
+    if (player->x + player->w > SCREEN_WIDTH) player->x = SCREEN_WIDTH - player->w;
 
-    if (*bullet_active)
-    {
+    if (*bullet_active) {
         bullet->y += bullet->vy * dt;
         if (bullet->y + bullet->h < 0)
             *bullet_active = false;
     }
 }
 
+void init_enemy(Entity *enemy, EnemyType type, float x, float y) {
+    enemy->x = x;
+    enemy->y = y;
+    enemy->type = type;
+    enemy->alive = true;
+    enemy->w = 30;
+    enemy->h = 20;
 
+    switch(type) {
+        case RESISTANT:
+            enemy->lifep = 3; 
+            enemy->vy = 5;  
+            break;
+        case FAST:
+            enemy->lifep = 1;
+            enemy->vy = 10; 
+            break;
+        case SNIPER:
+            enemy->lifep = 1;
+            enemy->vy = 5;  
+            break;
+        case NORMAL:
+            enemy->lifep = 1;
+            enemy->vy = 5; 
+            break;
+    }
+}
 
+void check_if_player_hit_enemy(Entity *bullet, Entity *grille, bool *bullet_active, int *score) {
+    if (*bullet_active==false){
+        return;
+    } 
 
-void check_if_player_hit_enemy(SDL_Renderer *renderer, Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt, int *score){
-    for (int i=0; i<5; i++){
-        for (int j=0; j<10; j++){
-            Entity *enemy=&grille[i*10+j];
-            if (*bullet_active){
-                if (bullet->x >= enemy->x && bullet->x <= enemy->x + enemy->w && bullet->y >= enemy->y && bullet->y <= enemy->y + enemy->h){
-                    grille[i*10 + j].x = 0;
-                    grille[i*10 + j].y = 0;
-                    grille[i*10 + j].w = 0;
-                    grille[i*10 + j].h = 0;
-                    grille[i*10 + j].vx = 0;
-                    grille[i*10 + j].vy = 0;
-                    grille[i*10 + j].alive = false;
-                    *bullet_active = false;
-                    (*score)+=1;
+    for (int i = 0; i < 50; i++) {
+        Entity *enemy = &grille[i];
+        if (enemy->alive) {
+            if (bullet->x < enemy->x + enemy->w && bullet->x + bullet->w > enemy->x &&
+                bullet->y < enemy->y + enemy->h && bullet->y + bullet->h > enemy->y) {
+                
+                *bullet_active = false; 
+                enemy->lifep-=1;                
 
+                if (enemy->lifep <= 0) {
+                    enemy->alive = false;
+                    (*score) += 1;
                 }
+                break; 
             }
         }
     }
 }
-
 
 void Enemiesdraw(SDL_Renderer *renderer, Entity *grille) {
     for (int i = 0; i < 50; i++) {
-
-        if (!grille[i].alive)
+        if (grille[i].alive==false){
             continue;
+        } 
 
-        SDL_Rect enemies_rect = {
-        (int)grille[i].x, (int)grille[i].y,
-        grille[i].w, grille[i].h};
+        switch(grille[i].type) {
+            case RESISTANT:SDL_SetRenderDrawColor(renderer, 150, 0, 255, 255); break; 
+            case FAST:SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);   break; 
+            case SNIPER:SDL_SetRenderDrawColor(renderer, 255, 140, 0, 255); break; 
+            case NORMAL:SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);   break; 
+        }
 
-        SDL_RenderFillRect(renderer, &enemies_rect);
+        SDL_Rect rect = {(int)grille[i].x, (int)grille[i].y, grille[i].w, grille[i].h};
+        SDL_RenderFillRect(renderer, &rect);
     }
 }
 
-void enemies_shoot(Entity *grille, float dt,Entity *enemy_bullets,bool enemy_bullets_active[]) {
-    static float timer = 0.0f; 
+
+void enemies_shoot(Entity *grille, float dt, Entity *enemy_bullets, bool enemy_bullets_active[]) {
+    static float timer = 0.0f;
     timer += dt;
-    if (timer >= 1.5f) {
+    if (timer >= 1.0f) { 
         timer = 0.0f;
-        int essais = 0;
-        int indi = -1;
-        while(essais < 10) {
-            int r = rand() % 50;
-            if (grille[r].alive) {
-                indi = r;
-                break;
-            }
-            essais+=1;
-        }
-        if (indi != -1) {
-            for (int i = 0; i < NB_ENEMY_BULLETS; i++) {
-                if (enemy_bullets_active[i]==false) {
-                    enemy_bullets_active[i] = true;
-                    enemy_bullets[i].x = grille[indi].x + (grille[indi].w / 2) - 2;
-                    enemy_bullets[i].y = grille[indi].y + grille[indi].h;
-                    enemy_bullets[i].w = ENEMY_BULLET_WIDTH;
-                    enemy_bullets[i].h = ENEMY_BULLET_HEIGHT;
-                    enemy_bullets[i].vy = ENEMY_BULLET_SPEED; 
-                    break; 
+
+        for (int i = 0; i < 50; i++) {
+            if (grille[i].alive==true) {
+                int chance_tir = 0;
+                if (grille[i].type == SNIPER) chance_tir = 25; 
+                else chance_tir = 5;                          
+
+                if ((rand() % 100) < chance_tir) {
+                    for (int j = 0; j < NB_ENEMY_BULLETS; j++) {
+                        if (!enemy_bullets_active[j]) {
+                            enemy_bullets_active[j] = true;
+                            enemy_bullets[j].x = grille[i].x + (grille[i].w / 2) - 2;
+                            enemy_bullets[j].y = grille[i].y + grille[i].h;
+                            enemy_bullets[j].w = ENEMY_BULLET_WIDTH;
+                            enemy_bullets[j].h = ENEMY_BULLET_HEIGHT;
+                            enemy_bullets[j].vy = ENEMY_BULLET_SPEED;
+                            break; 
+                        }
+                    }
                 }
             }
         }
@@ -177,7 +205,7 @@ void update_enemy_bullets(float dt,Entity *enemy_bullets,bool enemy_bullets_acti
 }
 
 
-void check_if_enemy_hit_player(Entity *player, int *life, bool *running,Entity *enemy_bullets,bool enemy_bullets_active[] ) {
+void check_if_enemy_hit_player(Entity *player, int *life,Entity *enemy_bullets,bool enemy_bullets_active[] ) {
     for (int i = 0; i < NB_ENEMY_BULLETS; i++) {
         if (enemy_bullets_active[i]) {
             if (enemy_bullets[i].x < player->x + player->w &&
@@ -215,7 +243,7 @@ void update_heart(Entity *heart, Entity *player, int *life, float dt) {
 
 
 
-void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet, bool bullet_active, Entity *enemy_bullets, bool *enemy_bullets_active, int score, int lives, Entity *heart)
+void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet, bool bullet_active, Entity *enemy_bullets, bool *enemy_bullets_active, Entity *heart)
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
    
@@ -268,67 +296,59 @@ void cleanup(SDL_Window *window, SDL_Renderer *renderer)
 
 
 
-void win(SDL_Renderer *renderer, Entity *grille, SDL_Window **window, TTF_Font *font, bool *running) {
+void win(SDL_Renderer *renderer, Entity *grille, TTF_Font *font, bool *running) {
     int k = 0;
     for (int i = 0; i < 50; i++) {
-        if (grille[i].alive == false) {
-            k += 1;
+        if (!grille[i].alive) {
+            k+=1;
         }
     }
-
     if (k == 50) { 
-        SDL_Color vert = {0, 255, 0, 255}; 
-        
-        if (font != NULL) {
-            SDL_Surface *surf = TTF_RenderText_Solid(font, "YOU WIN MY CHAMPION !", vert);
-            if (surf) {
-                SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surf);
-                if (tex) {
-                    SDL_Rect rect = { (SCREEN_WIDTH - surf->w) / 2, (SCREEN_HEIGHT - surf->h) / 2, surf->w, surf->h };
-                    SDL_RenderCopy(renderer, tex, NULL, &rect);
-                    SDL_DestroyTexture(tex);
-                }
-                SDL_FreeSurface(surf);
-            }
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+        SDL_Surface *s = TTF_RenderText_Solid(font, "BRAVO CHAMPION.NE !", (SDL_Color){0, 255, 0, 255});
+        if (s!=NULL) {
+            SDL_Texture *t = SDL_CreateTextureFromSurface(renderer, s);
+            SDL_Rect r = { (SCREEN_WIDTH - s->w) / 2, (SCREEN_HEIGHT - s->h) / 2, s->w, s->h };
+            SDL_RenderCopy(renderer, t, NULL, &r);
+            SDL_RenderPresent(renderer);
+
+            SDL_Delay(2000); 
+            
+            SDL_FreeSurface(s);
+            SDL_DestroyTexture(t);
         }
-        SDL_RenderPresent(renderer);
-        SDL_Delay(1000);
-        *running = false;
+        *running = false; 
     }
 }
 
+void loose(SDL_Renderer *renderer, int life, Entity *grille, TTF_Font *font, bool *running) {
+    bool out = false;
 
-void loose2(bool *running, SDL_Renderer *renderer, SDL_Window **window, Entity *player, Entity *grille, Entity *bullet, bool *bullet_active, TTF_Font *font) {
-    
-    bool ennemi_sort = false;
-    for (int i = 0; i < 50; i++) {
-        if (grille[i].alive ==true && (grille[i].y + grille[i].h) >= player->y) {
-            ennemi_sort = true;
-            break; 
+    for (int i = 0; i < ENEMIES_NUMBER; i++) {
+        if (grille[i].alive && (grille[i].y + grille[i].h) >= (SCREEN_HEIGHT - 70)) {
+            out = true;
+            break;
         }
     }
 
-    if (player->alive==false || ennemi_sort) {
-        player->alive = false; 
+    if (life <= 0 || out==true) {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
         
-        SDL_Color red = {255, 0, 0, 255};
-        
-        if (font != NULL) {
-            SDL_Surface *surf = TTF_RenderText_Solid(font, "YOU LOOSE BIG LOOSER !", red);
-            if (surf) {
-                SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surf);
-                SDL_Rect rect = { (SCREEN_WIDTH - surf->w) / 2, (SCREEN_HEIGHT - surf->h) / 2, surf->w, surf->h };
-                
-                SDL_RenderCopy(renderer, tex, NULL, &rect);
-                
-                SDL_RenderPresent(renderer); 
-                SDL_Delay(1000);             
-                *running = false;            
-                
-                SDL_DestroyTexture(tex);
-                SDL_FreeSurface(surf);
-            }
+        SDL_Surface* s = TTF_RenderText_Solid(font, "T'AS PERDU GROS.SE LOOSEU.R.SE !", (SDL_Color){255, 0, 0, 255});
+        if (s != NULL) {
+            SDL_Texture* t = SDL_CreateTextureFromSurface(renderer, s);
+            SDL_Rect r = {(SCREEN_WIDTH - s->w) / 2, (SCREEN_HEIGHT - s->h) / 2, s->w, s->h};
+            SDL_RenderCopy(renderer, t, NULL, &r);
+            SDL_RenderPresent(renderer);
+
+            SDL_Delay(2000); 
+
+            SDL_FreeSurface(s);
+            SDL_DestroyTexture(t);
         }
+        *running = false; 
     }
 }
 

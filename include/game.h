@@ -35,17 +35,19 @@
 
 bool init(SDL_Window **window, SDL_Renderer **renderer);
 void handle_input(bool *running, const Uint8 *keys, Entity *player, Entity *bullet, bool *bullet_active);
-void update(Entity *player, Entity *bullet,Entity *grille, bool *bullet_active, float dt, float Vy);
-void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet, bool bullet_active, Entity *enemy_bullets, bool *enemy_bullets_active,int score, int lives,Entity *heart);
+void render(SDL_Renderer *renderer, Entity *player, Entity *grille, Entity *bullet, bool bullet_active, Entity *enemy_bullets, bool *enemy_bullets_active,Entity *heart);
 void cleanup(SDL_Window *window, SDL_Renderer *renderer);
-void check_if_player_hit_enemy(SDL_Renderer *renderer, Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt,int *score);
-void Enemiesdraw(SDL_Renderer *renderer, Entity *grille);
-void win(SDL_Renderer *renderer, Entity *grille, SDL_Window **window,TTF_Font *font, bool *running);
-void enemies_shoot(Entity *grille, float dt,Entity *enemy_bullets,bool enemy_bullets_active[]);
+void win(SDL_Renderer *renderer, Entity *grille, TTF_Font *font, bool *running);
 void update_enemy_bullets(float dt,Entity *enemy_bullets,bool enemy_bullets_active[]);
-void check_if_enemy_hit_player(Entity *player, int *life, bool *running,Entity *enemy_bullets,bool enemy_bullets_active[]);
+void check_if_enemy_hit_player(Entity *player, int *life,Entity *enemy_bullets,bool enemy_bullets_active[]);
 void update_heart(Entity *heart, Entity *player, int *life, float dt);
-void loose2(bool *running, SDL_Renderer *renderer, SDL_Window **window, Entity *player, Entity *grille, Entity *bullet, bool *bullet_active, TTF_Font *font);
+void loose(SDL_Renderer *renderer, int life, Entity *grille, TTF_Font *font, bool *running);
 void draw_hud(SDL_Renderer *renderer, TTF_Font *font, int score, int lives);
+void check_if_player_hit_enemy(Entity *bullet, Entity *grille, bool *bullet_active, int *score);
+void Enemiesdraw(SDL_Renderer *renderer, Entity *grille);
+void enemies_shoot(Entity *grille, float dt, Entity *enemy_bullets, bool enemy_bullets_active[]);
+void check_if_player_hit_enemy(Entity *bullet, Entity *grille, bool *bullet_active, int *score);
+void update(Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt, float difficulty_factor);
+void init_enemy(Entity *enemy, EnemyType type, float x, float y);
 
 #endif

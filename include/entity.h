@@ -16,7 +16,7 @@ typedef struct
     int w, h;
     bool alive;
     EnemyType type; 
-    int hp;
+    int lifep;
 } Entity;
 
 
