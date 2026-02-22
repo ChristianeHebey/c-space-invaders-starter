@@ -19,8 +19,13 @@ typedef struct
     int lifep;
 } Entity;
 
-
-
+typedef enum {
+    STATE_MENU,
+    STATE_PLAYING,
+    STATE_PAUSE,
+    STATE_WIN,
+    STATE_GAMEOVER
+} GameState;
 
 
 #endif
