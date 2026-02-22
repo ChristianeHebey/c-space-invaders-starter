@@ -15,7 +15,7 @@ Utilisation de la bibliothèque graphique SDL et de l'extension SDL_ttf pour avo
 
 ## Disclaimer
 
-• Les textes affichés dans ce jeu sont écrits en écriture inclusive. Si jamais vous ne maîtrisez/connaissez pas avec cette pratique, voici un document très intéressant qui résume les tenants, aboutissements et règles de cette écriture https://inrs.ca/wp-content/uploads/2021/03/Guide-redaction-inclusive-inrs-vf.pdf. 
+• Les textes affichés dans ce jeu sont écrits en écriture inclusive. Si jamais vous ne maîtrisez/connaissez pas cette pratique, voici un document très intéressant qui résume les tenants, aboutissements et règles de cette écriture https://inrs.ca/wp-content/uploads/2021/03/Guide-redaction-inclusive-inrs-vf.pdf. 
 
 • Soyez prévenu, le jeu peut être légèrement agressif avec vous, et vous traiter notamment de flemmard.e ou de looseu.r.se. C'est là entièrement de la faute du jeu et non la mienne. Cependant le jeu n'hésitera pas à vous féliciter en cas de victoire ! 
 
