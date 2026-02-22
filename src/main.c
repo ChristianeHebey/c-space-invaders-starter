@@ -31,36 +31,7 @@ int main(void)
     Uint32 last_ticks = SDL_GetTicks();
 
     Entity grille[ENEMIES_NUMBER];
-    for (int i = 0; i < 5; i++) { 
-        for (int j = 0; j < 10; j++) { 
-            int id = i * 10 + j;
-            grille[id].x = 180 + (j * 45);
-            grille[id].y = 80 + (i * 35);
-            grille[id].w = 30; 
-            grille[id].h = 20;
-            grille[id].alive = true;
-            if (j == 0 || j == 9) { 
-                grille[id].type = RESISTANT;
-                grille[id].lifep = 3;
-                grille[id].vy = 5;
-            } 
-            else if (j == 4 || j == 5) { 
-                grille[id].type = SNIPER;
-                grille[id].lifep = 1;
-                grille[id].vy = 5;
-            } 
-            else if (j == 2 || j == 7) {
-                grille[id].type = FAST;
-                grille[id].lifep = 1;
-                grille[id].vy = 10;
-            }
-            else { 
-                grille[id].type = NORMAL;
-                grille[id].lifep = 1;
-                grille[id].vy = 5;
-            }
-        }
-    }
+    
 
     Entity player = {
         .x = SCREEN_WIDTH / 2 - PLAYER_WIDTH / 2,
@@ -112,14 +83,17 @@ int main(void)
                 if (state == STATE_MENU) {
                     if (mx >= eazBtn.x && mx <= eazBtn.x + eazBtn.w && my >= eazBtn.y && my <= eazBtn.y + eazBtn.h) {
                         difficulty = 1.0f; 
+                        init_level(grille, 1);
                         state = STATE_PLAYING;
                     }
                     else if (mx >= midBtn.x && mx <= midBtn.x + midBtn.w && my >= midBtn.y && my <= midBtn.y + midBtn.h) {
-                        difficulty = 2.0f; 
+                        difficulty = 2.0f;
+                        init_level(grille, 2); 
                         state = STATE_PLAYING;
                     }
                     else if (mx >= hardBtn.x && mx <= hardBtn.x + hardBtn.w && my >= hardBtn.y && my <= hardBtn.y + hardBtn.h) {
                         difficulty = 3.0f; 
+                        init_level(grille, 3);
                         state = STATE_PLAYING;
                     }
                 }
@@ -141,7 +115,7 @@ int main(void)
             const Uint8 *keys = SDL_GetKeyboardState(NULL);
             handle_input(&running, keys, &player, &bullet, &bullet_active);
 
-            difficulty += 0.05f * dt;
+            difficulty += 0.1f * dt;
             heart_timer += dt;
 
             if (heart_timer >= 5.0f && !heart.alive) {

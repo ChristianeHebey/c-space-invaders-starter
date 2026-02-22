@@ -55,7 +55,7 @@ Utilisation de la bibliothèque graphique SDL et de l'extension SDL_ttf pour avo
 - La console d'affichage se ferme quelques secondes après que la partie soit finie.
 
 
-- Le jeu comprend également un menu proposant trois niveaux de difficulté. Chaque niveau de difficulté correspond à une vitesse de descente des ennemis de plus en plus élevée. Cette vitesse est dans tous les cas progressive au cours de la descente. 
+- Le jeu comprend également un menu proposant trois niveaux de difficulté. Chaque niveau de difficulté correspond à une vitesse de descente des ennemis de plus en plus élevée, et à un nombre d'ennemis de plus en plus élevé (20 facile, 40 intermédiare, 50 difficile). Cette vitesse est dans tous les cas progressive au cours de la descente. 
 
 
 - Il est également possible de mettre le jeu en pause. 

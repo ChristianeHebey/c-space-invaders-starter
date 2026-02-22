@@ -90,6 +90,55 @@ void update(Entity *player, Entity *bullet, Entity *grille, bool *bullet_active,
     }
 }
 
+void init_level(Entity *grille, int level) {
+    int rows;
+    int cols = 10; 
+    if (level == 1){ 
+        rows = 2; 
+    } 
+    else if (level == 2) {
+        rows = 4; 
+    } 
+    else { 
+        rows = 5; 
+    } 
+
+    for (int i = 0; i < ENEMIES_NUMBER; i++) {
+        grille[i].alive = false;
+    }
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            int id = i * cols + j; 
+            grille[id].x = 180 + (j * 45); 
+            grille[id].y = 80 + (i * 35);
+            grille[id].w = 30;
+            grille[id].h = 20;
+            grille[id].alive = true;
+            if (j == 0 || j == 9) { 
+                grille[id].type = RESISTANT;
+                grille[id].lifep = 3;
+                grille[id].vy = 5;
+            } 
+            else if (j == 4 || j == 5) { 
+                grille[id].type = SNIPER;
+                grille[id].lifep = 1;
+                grille[id].vy = 5;
+            } 
+            else if (j == 2 || j == 7) {
+                grille[id].type = FAST;
+                grille[id].lifep = 1;
+                grille[id].vy = 10;
+            }
+            else { 
+                grille[id].type = NORMAL;
+                grille[id].lifep = 1;
+                grille[id].vy = 5;
+            }
+        }
+    }
+}
+
 void init_enemy(Entity *enemy, EnemyType type, float x, float y) {
     enemy->x = x;
     enemy->y = y;

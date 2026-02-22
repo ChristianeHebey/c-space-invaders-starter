@@ -49,5 +49,6 @@ void enemies_shoot(Entity *grille, float dt, Entity *enemy_bullets, bool enemy_b
 void check_if_player_hit_enemy(Entity *bullet, Entity *grille, bool *bullet_active, int *score);
 void update(Entity *player, Entity *bullet, Entity *grille, bool *bullet_active, float dt, float difficulty_factor);
 void init_enemy(Entity *enemy, EnemyType type, float x, float y);
+void init_level(Entity *grille, int level);
 
 #endif
